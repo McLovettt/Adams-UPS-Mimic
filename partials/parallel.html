@@ -1,0 +1,39 @@
+<div class="topbar">
+<div class="pill ok" id="pState">UPS 1 + UPS 2 PARALLELED — LOAD SUPPLIED</div>
+<div class="pill">Load Status: <span id="pLoad">SUPPORTED</span></div>
+</div>
+<div class="diagram">
+<svg viewbox="0 0 1150 590">
+<rect class="box" height="70" rx="10" width="120" x="35" y="240"></rect>
+<text class="txt" x="95" y="270">MAINS</text><text class="small" x="95" y="293">Supply</text>
+<path class="wire live" d="M155 275 H220"></path>
+<path class="wire live" d="M220 275 V150 H285" id="pTo1"></path>
+<path class="wire live" d="M220 275 V370 H285" id="pTo2"></path>
+<g class="breaker closed" id="pUIB1"><circle class="term" cx="300" cy="150" r="7"></circle><circle class="term" cx="365" cy="150" r="7"></circle><line class="blade" x1="307" x2="358" y1="150" y2="150"></line><text x="332" y="112">UIB 1</text><text class="state" x="332" y="193">CLOSED</text></g>
+<path class="wire live" d="M372 150 H430" id="p1a"></path>
+<rect class="box" height="116" rx="12" width="175" x="420" y="92"></rect><text class="txt" x="507" y="116">UPS 1</text><text class="small" x="507" y="139">RECTIFIER → DC/BATTERY</text><text class="small" x="507" y="160">→ INVERTER</text><text class="small" x="507" y="184">AVAILABLE</text>
+<path class="wire live" d="M570 150 H625" id="p1b"></path>
+<g class="breaker closed" id="pUOB1"><circle class="term" cx="640" cy="150" r="7"></circle><circle class="term" cx="705" cy="150" r="7"></circle><line class="blade" x1="647" x2="698" y1="150" y2="150"></line><text x="672" y="112">UOB 1</text><text class="state" x="672" y="193">CLOSED</text></g>
+<path class="wire live" d="M712 150 H785 V275" id="p1c"></path>
+<g class="breaker closed" id="pUIB2"><circle class="term" cx="300" cy="370" r="7"></circle><circle class="term" cx="365" cy="370" r="7"></circle><line class="blade" x1="307" x2="358" y1="370" y2="370"></line><text x="332" y="332">UIB 2</text><text class="state" x="332" y="413">CLOSED</text></g>
+<path class="wire live" d="M372 370 H430" id="p2a"></path>
+<rect class="box" height="116" rx="12" width="175" x="420" y="312"></rect><text class="txt" x="507" y="336">UPS 2</text><text class="small" x="507" y="359">RECTIFIER → DC/BATTERY</text><text class="small" x="507" y="380">→ INVERTER</text><text class="small" x="507" y="404">AVAILABLE</text>
+<path class="wire live" d="M570 370 H625" id="p2b"></path>
+<g class="breaker closed" id="pUOB2"><circle class="term" cx="640" cy="370" r="7"></circle><circle class="term" cx="705" cy="370" r="7"></circle><line class="blade" x1="647" x2="698" y1="370" y2="370"></line><text x="672" y="332">UOB 2</text><text class="state" x="672" y="413">CLOSED</text></g>
+<path class="wire live" d="M712 370 H785 V275" id="p2c"></path>
+<path class="wire live" d="M785 150 V370" id="pBus"></path>
+<text class="small" x="785" y="250">COMMON OUTPUT BUS</text>
+<path class="wire live" d="M785 275 H835" id="pBusSIB"></path>
+<g class="breaker closed" id="pSIB"><circle class="term" cx="850" cy="275" r="7"></circle><circle class="term" cx="915" cy="275" r="7"></circle><line class="blade" x1="857" x2="908" y1="275" y2="275"></line><text x="882" y="237">SIB</text><text class="state" x="882" y="318">CLOSED</text></g>
+<path class="wire live" d="M922 275 H1010" id="pLoadWire"></path>
+<rect class="box" height="70" rx="10" width="105" x="1010" y="240"></rect><text class="txt" x="1062" y="270">LOAD</text><text class="small" id="pLoadText" x="1062" y="293">ON</text>
+<path class="wire live" d="M185 275 V510 H590" id="pBy1"></path>
+<g class="breaker open" id="pMBB"><circle class="term" cx="605" cy="510" r="7"></circle><circle class="term" cx="670" cy="510" r="7"></circle><line class="blade" x1="612" x2="663" y1="510" y2="510"></line><text x="637" y="472">MBB</text><text class="state" x="637" y="553">OPEN</text></g>
+<path class="wire" d="M677 510 H970 V275 H1010" id="pBy2"></path>
+<text class="small" x="820" y="495">COMMON MAINTENANCE BYPASS</text>
+</svg>
+</div>
+<div class="controls">
+<button id="pNormal">Both UPS Online</button><button id="pOne">UPS 1 Only</button><button id="pBypass">Maintenance Bypass</button><button id="pOpen">Open All</button>
+</div>
+<div class="note">Parallel mode is unchanged in this draft; we can add the same static-bypass/interlock treatment to it next.</div>
