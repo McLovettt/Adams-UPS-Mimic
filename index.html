@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adams UPS Trainer v0.7</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>Adams UPS Trainer v0.7</h1>
+  <div class="sub">Expanded UPS mimic with Rectifier, DC link, Batteries, Inverter, input-loss simulation, battery state-of-charge, 5-second battery run-down testing, forced-bypass behavior, and static-bypass/interlock logic.</div>
+  <div class="tabs">
+    <button class="tab active" data-panel="single">Single UPS</button>
+    <button class="tab" data-panel="parallel">Parallel UPS</button>
+    <button class="tab" data-panel="castell">Castell Key Mode</button>
+    <button class="tab" data-panel="aux">Lights &amp; Auxiliaries</button>
+  </div>
+  <div class="card">
+    <section id="single" class="panel active"></section>
+    <section id="parallel" class="panel"></section>
+    <section id="castell" class="panel"></section>
+    <section id="aux" class="panel"></section>
+    <div class="legend">
+      <span><span class="dot" style="background:#22c55e"></span>Energised path / available lamp</span>
+      <span><span class="dot" style="background:#64748b"></span>Not energised</span>
+      <span><span class="dot" style="background:#f59e0b"></span>Dual-fed / transitional condition</span>
+    </div>
+    <div class="note"><strong>Training simulator only.</strong> This follows the switching logic you described and is not a substitute for an approved manufacturer/site switching procedure. Battery/DC energy is shown for training only. The battery percentage drains/recharges at an intentionally accelerated demo rate. The 5-second test simulates a rectifier failure with a healthy bypass source: when the battery reaches 0%, the UPS enters FORCED BYPASS if the bypass source is available and synchronised. If mains/bypass is unavailable, the simulator reports LOAD DROPPED!! and BYPASS FAILED. The mechanical maintenance-bypass breaker (MBB) remains manual. In this training model the UPS output and bypass/load bus are treated as out of sync until Static Bypass is selected. In Castell mode, locking the key in Position 2 releases the MBB; the MBB must still be closed manually. Opening UIB/UOB does not by itself prove the UPS DC section is safe or de-energised.</div>
+  </div>
+</div>
+<script src="js/app.js"></script>
+</body>
+</html>
