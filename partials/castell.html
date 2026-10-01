@@ -1,0 +1,115 @@
+<div class="topbar">
+<div class="pill ok" id="cState">UPS SUPPLYING LOAD</div>
+<div class="pill">Load Status: <span id="cLoad">SUPPORTED BY UPS</span></div>
+</div>
+<div class="fault-banner" id="cFaultBanner">
+<span class="fault-title">☠ BANG! ☠</span>
+<span class="fault-sub">Voltages we're out of sync, check installation for damage before proceeding.</span>
+</div>
+<div class="loaddrop-banner" id="cLoadDropBanner">
+<span class="drop-title">Uh-Oh.. load has been dropped</span>
+</div>
+<div class="diagram">
+<svg viewbox="0 0 1120 760">
+<rect class="box" height="58" rx="9" width="120" x="62" y="241"></rect>
+<text class="txt" x="122" y="264">MAINS</text><text class="small" x="122" y="284">Supply</text>
+<g class="input-toggle on" id="cInputToggle" transform="translate(67,315)">
+<rect height="34" rx="17" width="110"></rect>
+<text x="55" y="14">INPUT SUPPLY</text>
+<text id="cInputToggleText" x="55" y="28">ON</text>
+</g>
+<path class="wire live" d="M182 270 H295" id="cW1"></path>
+<g class="breaker closed locked" id="cUIB"><circle class="term" cx="310" cy="270" r="7"></circle><circle class="term" cx="375" cy="270" r="7"></circle><line class="blade" x1="317" x2="368" y1="270" y2="270"></line><text x="342" y="205">UIB</text><text class="state" x="342" y="333">CLOSED</text></g>
+<path class="wire live" d="M382 270 H430" id="cW2"></path>
+<rect class="component component-live" height="52" id="cRectifier" rx="8" width="82" x="430" y="234"></rect>
+<text class="comp-title" x="471" y="254">RECTIFIER</text>
+<text class="comp-state" id="cRectState" x="471" y="273">ACTIVE</text>
+<path class="dcwire live" d="M512 260 H560" id="cDC1"></path>
+<circle cx="560" cy="260" fill="#22c55e" r="5"></circle>
+<path class="dcwire battery" d="M560 260 V345" id="cBatWire"></path>
+<rect class="component component-live" height="54" id="cBattery" rx="8" width="100" x="510" y="354"></rect>
+<text class="comp-title" x="560" y="375">BATTERIES</text>
+<text class="comp-state" id="cBatState" x="560" y="393">FLOAT</text>
+<rect class="battery-meter-bg" height="14" rx="7" width="110" x="505" y="420"></rect>
+<rect class="battery-meter-fill" height="10" id="cBatBar" rx="5" width="106" x="507" y="422"></rect>
+<text class="battery-pct" id="cBatPct" x="560" y="449">100%</text>
+<g class="static-toggle on" id="cBatteryToggle" transform="translate(500,460)">
+<rect height="32" rx="16" width="120"></rect>
+<text x="60" y="14">BATTERY SWITCH</text>
+<text class="toggle-state" id="cBatteryToggleText" x="60" y="27">ON</text>
+</g>
+<g class="test-toggle" id="cBatteryTest" transform="translate(635,460)">
+<rect height="32" rx="16" width="140"></rect>
+<text x="70" y="14">5s BATTERY RUN-DOWN</text>
+<text id="cBatteryTestText" x="70" y="27">START TEST</text>
+</g>
+<text class="small" id="cBatteryTestStatus" x="705" y="512">READY</text>
+<path class="dcwire live" d="M565 260 H595" id="cDC2"></path>
+<rect class="component component-live" height="52" id="cInverter" rx="8" width="76" x="595" y="234"></rect>
+<text class="comp-title" x="633" y="254">INVERTER</text>
+<text class="comp-state" id="cInvState" x="633" y="273">SUPPLYING</text>
+<g class="static-toggle" id="cStaticToggle" transform="translate(485,150)">
+<rect height="44" rx="16" width="160"></rect>
+<text style="font-size:15px" x="80" y="19">STATIC BYPASS</text>
+<text class="toggle-state" id="cStaticToggleText" style="font-size:13px" x="80" y="36">OFF</text>
+</g>
+<text class="small" id="cUpsMode" x="560" y="565">UPS ONLINE</text>
+<text class="small" id="cSolText" x="560" y="585">SOLENOID: DE-ENERGISED</text>
+<path class="wire live" d="M671 260 H770" id="cW3"></path>
+<g class="breaker closed locked" id="cUOB"><circle class="term" cx="785" cy="260" r="7"></circle><circle class="term" cx="850" cy="260" r="7"></circle><line class="blade" x1="792" x2="843" y1="260" y2="260"></line><text x="817" y="205">UOB</text><text class="state" x="817" y="323">CLOSED</text></g>
+<path class="wire live" d="M857 260 H978" id="cW4"></path>
+<rect class="box" height="58" rx="9" width="92" x="978" y="231"></rect>
+<text class="txt" x="1024" y="255">LOAD</text><text class="small" id="cLoadText" x="1024" y="276">ON</text>
+<path class="wire live" d="M235 270 V675 H415" id="cBW1"></path>
+<g class="breaker open locked" id="cMBB"><circle class="term" cx="430" cy="675" r="7"></circle><circle class="term" cx="495" cy="675" r="7"></circle><line class="blade" x1="437" x2="488" y1="675" y2="675"></line><text x="462" y="625">MBB</text><text class="state" x="462" y="730">OPEN</text></g>
+<path class="wire" d="M502 675 H933 V260 H978" id="cBW2"></path>
+<text class="small" x="650" y="655">CASTELL-INTERLOCKED BYPASS</text>
+</svg>
+</div>
+<div class="castell-top-controls">
+<div class="indicator-row">
+<div class="indicator"><div class="lamp blocked" id="cLampUIB"></div>UIB</div>
+<div class="indicator"><div class="lamp blocked" id="cLampMBB"></div>MBB</div>
+<div class="indicator"><div class="lamp blocked" id="cLampUOB"></div>UOB</div>
+<div class="indicator"><div class="lamp blocked" id="cLampReleased"></div>KEY RELEASED</div>
+<div class="indicator"><div class="lamp blocked" id="cLampLocked"></div>KEY LOCKED</div>
+<div class="indicator sync-indicator">
+<div class="sync-inline"><span class="sync-lamp ok" id="cSyncLamp"></span><span class="sync-status" id="cSyncText">SYNC OK</span></div>
+            SYNC STATUS
+          </div>
+</div>
+<div class="controls">
+<button disabled="" id="cTurnRemove">Turn &amp; Remove Key at Position 1</button>
+<button disabled="" id="cInsertTurn">Insert &amp; Turn Key at Position 2</button>
+<button id="cDesync">Simulate Out-of-Sync</button>
+<button id="cSync">Synchronise Sources</button>
+<button id="cReset">Reset Sequence</button>
+</div>
+</div>
+<div class="sync-panel">
+<div class="sync-title">3-Phase Voltage / Synchronisation</div>
+<div class="sync-grid">
+<div class="sync-side">
+<h4>UPS Output Side</h4>
+<div class="phase-row"><span>L1-L2</span><strong id="cUpsV12">400 V</strong></div>
+<div class="phase-row"><span>L2-L3</span><strong id="cUpsV23">400 V</strong></div>
+<div class="phase-row"><span>L3-L1</span><strong id="cUpsV31">400 V</strong></div>
+<div class="phase-row"><span>Frequency</span><strong id="cUpsHz">50.0 Hz</strong></div>
+</div>
+<div class="sync-side">
+<h4>Bypass / Load Bus Side</h4>
+<div class="phase-row"><span>L1-L2</span><strong id="cBusV12">400 V</strong></div>
+<div class="phase-row"><span>L2-L3</span><strong id="cBusV23">400 V</strong></div>
+<div class="phase-row"><span>L3-L1</span><strong id="cBusV31">400 V</strong></div>
+<div class="phase-row"><span>Frequency</span><strong id="cBusHz">50.0 Hz</strong></div>
+</div>
+</div>
+<div class="sync-summary">
+<span>Phase angle Δ: <strong id="cPhaseDelta">0.0°</strong></span>
+<span>Sequence: <strong>L1-L2-L3</strong></span>
+</div>
+<div class="small" style="text-align:left;margin-top:8px">
+          In this training model, a live-bus UOB close is blocked unless the UPS output and bypass/load bus are synchronised.
+        </div>
+</div>
+<div class="steps" id="cSteps"></div>
