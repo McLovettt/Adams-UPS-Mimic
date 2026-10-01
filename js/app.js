@@ -59,8 +59,42 @@ function updateSyncPanel(prefix, syncOk){
   $(prefix+"SyncText").textContent=syncOk?"SYNC OK":"NOT IN SYNC";
 }
 
-document.querySelectorAll(".tab").forEach(btn=>btn.onclick=()=>{
-  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
-  btn.classList.add("active"); $(btn.dataset.panel).classList.add("active");
+async function injectPartial(id,path){
+  const res=await fetch(path);
+  if(!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
+  $(id).innerHTML=await res.text();
+}
+function loadScript(path){
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    s.src=path;
+    s.onload=resolve;
+    s.onerror=()=>reject(new Error(`Failed to load ${path}`));
+    document.body.appendChild(s);
+  });
+}
+async function initTrainer(){
+  await Promise.all([
+    injectPartial("single","partials/single.html"),
+    injectPartial("parallel","partials/parallel.html"),
+    injectPartial("castell","partials/castell.html"),
+    injectPartial("aux","partials/aux.html")
+  ]);
+  await Promise.all([
+    injectPartial("auxSingleWrap","partials/aux-single.html"),
+    injectPartial("auxDualWrap","partials/aux-dual.html")
+  ]);
+  document.querySelectorAll(".tab").forEach(btn=>btn.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active"); $(btn.dataset.panel).classList.add("active");
+  });
+  await loadScript("js/single-ups.js");
+  await loadScript("js/parallel-ups.js");
+  await loadScript("js/castell.js");
+  await loadScript("js/auxiliaries.js");
+}
+initTrainer().catch(err=>{
+  console.error(err);
+  document.body.insertAdjacentHTML("afterbegin",`<div style="padding:12px;background:#3a0f12;color:#fee2e2;font-weight:700">Trainer failed to load: ${err.message}</div>`);
 });
