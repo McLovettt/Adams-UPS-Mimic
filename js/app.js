@@ -59,6 +59,60 @@ function updateSyncPanel(prefix, syncOk){
   $(prefix+"SyncText").textContent=syncOk?"SYNC OK":"NOT IN SYNC";
 }
 
+function prepareBatteryBreakerUI(prefix,panelId){
+  const toggle=$(prefix+"BatteryToggle");
+  if(toggle){
+    const name=toggle.querySelector("text");
+    if(name) name.textContent="BATTERY BREAKER";
+    const stateText=$(prefix+"BatteryToggleText");
+    if(stateText) stateText.textContent="CLOSED";
+  }
+
+  const panel=$(panelId);
+  const topbar=panel?.querySelector(".topbar");
+  if(topbar && !$(prefix+"BatteryBackup")){
+    const status=document.createElement("div");
+    status.id=prefix+"BatteryBackup";
+    status.className="pill ok";
+    status.textContent="Battery Backup: AVAILABLE";
+    topbar.appendChild(status);
+  }
+}
+
+function renderBatteryBreaker(prefix,state){
+  const toggle=$(prefix+"BatteryToggle");
+  const stateText=$(prefix+"BatteryToggleText");
+  if(toggle){
+    toggle.classList.toggle("on",state.battery);
+    toggle.classList.toggle("off",!state.battery);
+  }
+  if(stateText) stateText.textContent=state.battery?"CLOSED":"OPEN";
+
+  const backupAvailable=state.battery && state.batteryPct>0;
+  const backup=$(prefix+"BatteryBackup");
+  if(backup){
+    backup.textContent="Battery Backup: "+(backupAvailable?"AVAILABLE":"UNAVAILABLE");
+    backup.className="pill "+(backupAvailable?"ok":"bad");
+  }
+}
+
+function installBatteryBreakerStatusWrappers(){
+  const baseSingle=updateSingle;
+  updateSingle=function(){
+    baseSingle();
+    renderBatteryBreaker("s",s);
+  };
+
+  const baseCastell=updateCastell;
+  updateCastell=function(){
+    baseCastell();
+    renderBatteryBreaker("c",c);
+  };
+
+  updateSingle();
+  updateCastell();
+}
+
 async function injectPartial(id,path){
   const res=await fetch(path);
   if(!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
@@ -84,6 +138,10 @@ async function initTrainer(){
     injectPartial("auxSingleWrap","partials/aux-single.html"),
     injectPartial("auxDualWrap","partials/aux-dual.html")
   ]);
+
+  prepareBatteryBreakerUI("s","single");
+  prepareBatteryBreakerUI("c","castell");
+
   document.querySelectorAll(".tab").forEach(btn=>btn.onclick=()=>{
     document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
     document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
@@ -92,6 +150,7 @@ async function initTrainer(){
   await loadScript("js/single-ups.js");
   await loadScript("js/parallel-ups.js");
   await loadScript("js/castell.js");
+  installBatteryBreakerStatusWrappers();
   await loadScript("js/auxiliaries.js");
 }
 initTrainer().catch(err=>{
