@@ -148,6 +148,16 @@ function renderUnsafeLoadDropControls(prefix,state,isCastell=false){
     lamp(prefix+"LampMBB",true);
   }
 
+  // Keep MBB physically clickable during normal operation. Closing it without
+  // first selecting bypass is deliberately treated as an unsafe operation:
+  // the breaker closes visually and the existing BANG warning is shown.
+  const unsafeMBBNormalClose = !state.mbb && state.uob && !state.static && !state.forcedBypass &&
+    !state.batteryTest && !state.rectifierFault && state.input && state.uib &&
+    (!isCastell || (!state.returning && !state.keyReleased && !state.keyAt2));
+  if(mbb && unsafeMBBNormalClose){
+    lockBreaker(mbb,false);
+  }
+
   // Allow UOB to be opened from normal UPS operation so the resulting load drop
   // can be demonstrated in the trainer.
   const normalOperation = state.uob && !state.mbb && !state.static && !state.forcedBypass &&
@@ -175,6 +185,14 @@ function installUnsafeLoadDropHandlers(){
   const sMBBBase=sMBB?.onclick;
   if(sMBB && sMBBBase){
     sMBB.onclick=()=>{
+      const unsafeNormalClose=!s.mbb && s.uob && !s.static && !s.forcedBypass &&
+        !s.batteryTest && !s.rectifierFault && s.input && s.uib;
+      if(unsafeNormalClose){
+        s.mbb=true;
+        s.bang=true;
+        updateSingle();
+        return;
+      }
       if(s.mbb && !s.uob){
         s.bang=false;
         s.mbb=false;
@@ -221,6 +239,15 @@ function installUnsafeLoadDropHandlers(){
   const cMBBBase=cMBB?.onclick;
   if(cMBB && cMBBBase){
     cMBB.onclick=()=>{
+      const unsafeNormalClose=!c.mbb && c.uob && !c.static && !c.forcedBypass &&
+        !c.batteryTest && !c.rectifierFault && c.input && c.uib &&
+        !c.returning && !c.keyReleased && !c.keyAt2;
+      if(unsafeNormalClose){
+        c.mbb=true;
+        c.bang=true;
+        updateCastell();
+        return;
+      }
       if(c.mbb && !c.uob){
         c.bang=false;
         c.mbb=false;
