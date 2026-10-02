@@ -20,6 +20,17 @@
   if(window.__staticBypassTrainingInstalled) return;
   window.__staticBypassTrainingInstalled=true;
 
+  function enhanceLoadDropBanner(id){
+    const banner=$(id);
+    if(!banner) return;
+    banner.innerHTML=
+      '<span class="drop-title" style="font-size:24px">✖ LOAD DROPPED ✖</span>'+
+      '<span class="drop-sub">Unfortunately the load has been dropped due to incorrect switching.</span>';
+  }
+
+  enhanceLoadDropBanner("sLoadDropBanner");
+  enhanceLoadDropBanner("cLoadDropBanner");
+
   function trainingControls(prefix,state,isCastell=false){
     const castellClear = !isCastell || (!state.returning && !state.keyReleased && !state.keyAt2);
 
