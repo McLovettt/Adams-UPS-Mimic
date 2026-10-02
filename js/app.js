@@ -136,6 +136,97 @@ function renderMaintenanceBypassLoadText(prefix,state){
   }
 }
 
+function renderUnsafeLoadDropControls(prefix,state,isCastell=false){
+  const mbb=$(prefix+"MBB");
+  const uob=$(prefix+"UOB");
+
+  // Allow the operator to open MBB while the load is solely on maintenance bypass.
+  // Doing so removes the only load path, so the existing load-drop banner appears.
+  if(mbb && state.mbb && !state.uob){
+    lockBreaker(mbb,false);
+    lamp(prefix+"LampMBB",true);
+  }
+
+  // Allow UOB to be opened from normal UPS operation so the resulting load drop
+  // can be demonstrated in the trainer.
+  const normalOperation = state.uob && !state.mbb && !state.static && !state.forcedBypass &&
+    !state.batteryTest && !state.rectifierFault && state.input && state.uib &&
+    (!isCastell || (!state.returning && !state.keyReleased && !state.keyAt2));
+  if(uob && normalOperation){
+    lockBreaker(uob,false);
+    lamp(prefix+"LampUOB",true);
+  }
+}
+
+function installUnsafeLoadDropHandlers(){
+  const sMBB=$("sMBB");
+  const sMBBBase=sMBB?.onclick;
+  if(sMBB && sMBBBase){
+    sMBB.onclick=()=>{
+      if(s.mbb && !s.uob){
+        s.bang=false;
+        s.mbb=false;
+        updateSingle();
+        return;
+      }
+      sMBBBase();
+    };
+  }
+
+  const sUOB=$("sUOB");
+  const sUOBBase=sUOB?.onclick;
+  if(sUOB && sUOBBase){
+    sUOB.onclick=()=>{
+      const normalOperation=s.uob && !s.mbb && !s.static && !s.forcedBypass &&
+        !s.batteryTest && !s.rectifierFault && s.input && s.uib;
+      if(normalOperation){
+        s.bang=false;
+        s.uob=false;
+        updateSingle();
+        return;
+      }
+      sUOBBase();
+    };
+  }
+
+  const cMBB=$("cMBB");
+  const cMBBBase=cMBB?.onclick;
+  if(cMBB && cMBBBase){
+    cMBB.onclick=()=>{
+      if(c.mbb && !c.uob){
+        c.bang=false;
+        c.mbb=false;
+        if(c.keyAt2){
+          c.returning=true;
+          c.static=false;
+          c.forcedBypass=true;
+          c.testResult="";
+        }
+        updateCastell();
+        return;
+      }
+      cMBBBase();
+    };
+  }
+
+  const cUOB=$("cUOB");
+  const cUOBBase=cUOB?.onclick;
+  if(cUOB && cUOBBase){
+    cUOB.onclick=()=>{
+      const normalOperation=c.uob && !c.mbb && !c.static && !c.forcedBypass &&
+        !c.batteryTest && !c.rectifierFault && c.input && c.uib &&
+        !c.returning && !c.keyReleased && !c.keyAt2;
+      if(normalOperation){
+        c.bang=false;
+        c.uob=false;
+        updateCastell();
+        return;
+      }
+      cUOBBase();
+    };
+  }
+}
+
 function installBatteryBreakerStatusWrappers(){
   const baseSingle=updateSingle;
   updateSingle=function(){
@@ -143,6 +234,7 @@ function installBatteryBreakerStatusWrappers(){
     renderBatteryBreaker("s",s);
     renderFailureTestButton("s",s);
     renderMaintenanceBypassLoadText("s",s);
+    renderUnsafeLoadDropControls("s",s,false);
   };
 
   const baseCastell=updateCastell;
@@ -151,6 +243,7 @@ function installBatteryBreakerStatusWrappers(){
     renderBatteryBreaker("c",c);
     renderFailureTestButton("c",c);
     renderMaintenanceBypassLoadText("c",c);
+    renderUnsafeLoadDropControls("c",c,true);
   };
 
   updateSingle();
@@ -197,6 +290,7 @@ async function initTrainer(){
   await loadScript("js/parallel-ups.js");
   await loadScript("js/castell.js");
   installBatteryBreakerStatusWrappers();
+  installUnsafeLoadDropHandlers();
   await loadScript("js/auxiliaries.js");
 }
 initTrainer().catch(err=>{
