@@ -141,11 +141,13 @@ function renderUnsafeLoadDropControls(prefix,state,isCastell=false){
   const uob=$(prefix+"UOB");
   const uib=$(prefix+"UIB");
 
+  // A breaker can remain physically clickable for training without its lamp
+  // indicating that the operation is safe/available.
+
   // Allow the operator to open MBB while the load is solely on maintenance bypass.
-  // Doing so removes the only load path, so the existing load-drop banner appears.
+  // The MBB lamp stays blocked because opening it would drop the load.
   if(mbb && state.mbb && !state.uob){
     lockBreaker(mbb,false);
-    lamp(prefix+"LampMBB",true);
   }
 
   // Keep MBB physically clickable during normal operation. Closing it without
@@ -159,24 +161,21 @@ function renderUnsafeLoadDropControls(prefix,state,isCastell=false){
   }
 
   // Allow UOB to be opened from normal UPS operation so the resulting load drop
-  // can be demonstrated in the trainer.
+  // can be demonstrated. Its lamp stays blocked because opening it drops the load.
   const normalOperation = state.uob && !state.mbb && !state.static && !state.forcedBypass &&
     !state.batteryTest && !state.rectifierFault && state.input && state.uib &&
     (!isCastell || (!state.returning && !state.keyReleased && !state.keyAt2));
   if(uob && normalOperation){
     lockBreaker(uob,false);
-    lamp(prefix+"LampUOB",true);
   }
 
-  // In normal operation, opening UIB removes the rectifier input and the UPS
-  // transfers to battery/inverter operation. The same control remains available
-  // while on battery so UIB can be reclosed and normal operation restored.
+  // In normal operation, opening UIB removes the rectifier input and transfers
+  // the UPS to battery mode. It stays clickable, but the lamp remains blocked.
   const uibBatteryModeControl = state.uob && !state.mbb && !state.static && !state.forcedBypass &&
     !state.batteryTest && !state.rectifierFault && state.input &&
     (!isCastell || (!state.returning && !state.keyReleased && !state.keyAt2));
   if(uib && uibBatteryModeControl){
     lockBreaker(uib,false);
-    lamp(prefix+"LampUIB",true);
   }
 }
 
