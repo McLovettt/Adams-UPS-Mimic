@@ -1,13 +1,12 @@
 // Adams UPS Trainer v0.7
-// Training-only unsafe operations while Static Bypass is selected.
-// The breakers remain physically clickable so the consequence of an incorrect
+// Training-only unsafe breaker operations.
+// Breakers may remain physically clickable so the consequence of an incorrect
 // operation can be demonstrated. Availability lamps are not forced green here.
 
 (function installStaticBypassTraining(){
   function ready(){
     return typeof updateSingle === "function" &&
       typeof updateCastell === "function" &&
-      typeof clearAuxHighlight === "function" &&
       document.getElementById("sUOB") &&
       document.getElementById("sUIB") &&
       document.getElementById("cUOB") &&
@@ -21,34 +20,46 @@
   if(window.__staticBypassTrainingInstalled) return;
   window.__staticBypassTrainingInstalled=true;
 
-  function staticBypassControls(prefix,state,isCastell=false){
-    const permitted = state.static && !state.mbb && !state.batteryTest && state.input &&
-      (!isCastell || (!state.returning && !state.keyReleased && !state.keyAt2));
-    if(!permitted) return;
+  function trainingControls(prefix,state,isCastell=false){
+    const castellClear = !isCastell || (!state.returning && !state.keyReleased && !state.keyAt2);
 
-    // These are intentionally clickable for the training exercise, but their
-    // lamps remain controlled by the normal safe-sequence logic.
-    lockBreaker($(prefix+"UOB"),false);
-    lockBreaker($(prefix+"UIB"),false);
+    // While Static Bypass is selected, UOB and UIB remain physically operable
+    // so incorrect switching can be demonstrated.
+    const staticBypassControls = state.static && !state.mbb && !state.batteryTest && state.input && castellClear;
+    if(staticBypassControls){
+      lockBreaker($(prefix+"UOB"),false);
+      lockBreaker($(prefix+"UIB"),false);
+    }
+
+    // If UIB has been opened and the UPS is running on battery, keep UOB
+    // physically operable. Opening UOB then removes the remaining load path and
+    // the existing LOAD DROPPED banner is shown.
+    const onBatteryWithUIBOpen = !state.uib && state.uob && !state.mbb &&
+      !state.batteryTest && state.input && state.battery && state.batteryPct>0 && castellClear;
+    if(onBatteryWithUIBOpen){
+      lockBreaker($(prefix+"UOB"),false);
+    }
   }
 
   const previousUpdateSingle=updateSingle;
   updateSingle=function(){
     previousUpdateSingle();
-    staticBypassControls("s",s,false);
+    trainingControls("s",s,false);
   };
 
   const previousUpdateCastell=updateCastell;
   updateCastell=function(){
     previousUpdateCastell();
-    staticBypassControls("c",c,true);
+    trainingControls("c",c,true);
   };
 
   const sUOB=$("sUOB");
   const previousSUOB=sUOB.onclick;
   sUOB.onclick=()=>{
     const staticBypassOperation=s.static && !s.mbb && !s.batteryTest && s.input;
-    if(staticBypassOperation){
+    const batteryOperation=!s.uib && s.uob && !s.mbb && !s.batteryTest &&
+      s.input && s.battery && s.batteryPct>0;
+    if(staticBypassOperation || batteryOperation){
       s.bang=false;
       s.uob=!s.uob;
       updateSingle();
@@ -73,9 +84,11 @@
   const cUOB=$("cUOB");
   const previousCUOB=cUOB.onclick;
   cUOB.onclick=()=>{
-    const staticBypassOperation=c.static && !c.mbb && !c.batteryTest && c.input &&
-      !c.returning && !c.keyReleased && !c.keyAt2;
-    if(staticBypassOperation){
+    const castellClear=!c.returning && !c.keyReleased && !c.keyAt2;
+    const staticBypassOperation=c.static && !c.mbb && !c.batteryTest && c.input && castellClear;
+    const batteryOperation=!c.uib && c.uob && !c.mbb && !c.batteryTest &&
+      c.input && c.battery && c.batteryPct>0 && castellClear;
+    if(staticBypassOperation || batteryOperation){
       c.bang=false;
       c.uob=!c.uob;
       updateCastell();
