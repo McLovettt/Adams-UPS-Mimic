@@ -96,6 +96,39 @@ function renderBatteryBreaker(prefix,state){
   }
 }
 
+function prepareFailureTestUI(prefix,panelId,controlsSelector){
+  const original=$(prefix+"BatteryTest");
+  const originalStatus=$(prefix+"BatteryTestStatus");
+  if(original) original.style.display="none";
+  if(originalStatus) originalStatus.style.display="none";
+
+  const controls=$(panelId)?.querySelector(controlsSelector);
+  if(!controls || $(prefix+"FailureTestButton")) return;
+
+  const button=document.createElement("button");
+  button.id=prefix+"FailureTestButton";
+  button.textContent="Part Failure During Battery Mode";
+  button.onclick=()=>{
+    if(original){
+      original.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));
+    }
+  };
+
+  const reset=$(prefix+"Reset");
+  if(reset && reset.parentElement===controls) controls.insertBefore(button,reset);
+  else controls.appendChild(button);
+}
+
+function renderFailureTestButton(prefix,state){
+  const button=$(prefix+"FailureTestButton");
+  if(!button) return;
+  button.textContent=state.batteryTest
+    ? `Part Failure During Battery Mode — ${state.testSeconds}s`
+    : "Part Failure During Battery Mode";
+  button.disabled=state.batteryTest;
+  button.style.borderColor=state.batteryTest?"var(--danger)":"";
+}
+
 function renderMaintenanceBypassLoadText(prefix,state){
   const loadStatus=$(prefix+"Load");
   if(loadStatus && state.mbb && !state.uob){
@@ -108,6 +141,7 @@ function installBatteryBreakerStatusWrappers(){
   updateSingle=function(){
     baseSingle();
     renderBatteryBreaker("s",s);
+    renderFailureTestButton("s",s);
     renderMaintenanceBypassLoadText("s",s);
   };
 
@@ -115,6 +149,7 @@ function installBatteryBreakerStatusWrappers(){
   updateCastell=function(){
     baseCastell();
     renderBatteryBreaker("c",c);
+    renderFailureTestButton("c",c);
     renderMaintenanceBypassLoadText("c",c);
   };
 
@@ -150,6 +185,8 @@ async function initTrainer(){
 
   prepareBatteryBreakerUI("s","single");
   prepareBatteryBreakerUI("c","castell");
+  prepareFailureTestUI("s","single",".single-top-controls .controls");
+  prepareFailureTestUI("c","castell",".castell-top-controls .controls");
 
   document.querySelectorAll(".tab").forEach(btn=>btn.onclick=()=>{
     document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
