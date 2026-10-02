@@ -139,6 +139,7 @@ function renderMaintenanceBypassLoadText(prefix,state){
 function renderUnsafeLoadDropControls(prefix,state,isCastell=false){
   const mbb=$(prefix+"MBB");
   const uob=$(prefix+"UOB");
+  const uib=$(prefix+"UIB");
 
   // Allow the operator to open MBB while the load is solely on maintenance bypass.
   // Doing so removes the only load path, so the existing load-drop banner appears.
@@ -155,6 +156,17 @@ function renderUnsafeLoadDropControls(prefix,state,isCastell=false){
   if(uob && normalOperation){
     lockBreaker(uob,false);
     lamp(prefix+"LampUOB",true);
+  }
+
+  // In normal operation, opening UIB removes the rectifier input and the UPS
+  // transfers to battery/inverter operation. The same control remains available
+  // while on battery so UIB can be reclosed and normal operation restored.
+  const uibBatteryModeControl = state.uob && !state.mbb && !state.static && !state.forcedBypass &&
+    !state.batteryTest && !state.rectifierFault && state.input &&
+    (!isCastell || (!state.returning && !state.keyReleased && !state.keyAt2));
+  if(uib && uibBatteryModeControl){
+    lockBreaker(uib,false);
+    lamp(prefix+"LampUIB",true);
   }
 }
 
@@ -186,6 +198,22 @@ function installUnsafeLoadDropHandlers(){
         return;
       }
       sUOBBase();
+    };
+  }
+
+  const sUIB=$("sUIB");
+  const sUIBBase=sUIB?.onclick;
+  if(sUIB && sUIBBase){
+    sUIB.onclick=()=>{
+      const batteryModeControl=s.uob && !s.mbb && !s.static && !s.forcedBypass &&
+        !s.batteryTest && !s.rectifierFault && s.input;
+      if(batteryModeControl){
+        s.bang=false;
+        s.uib=!s.uib;
+        updateSingle();
+        return;
+      }
+      sUIBBase();
     };
   }
 
@@ -223,6 +251,23 @@ function installUnsafeLoadDropHandlers(){
         return;
       }
       cUOBBase();
+    };
+  }
+
+  const cUIB=$("cUIB");
+  const cUIBBase=cUIB?.onclick;
+  if(cUIB && cUIBBase){
+    cUIB.onclick=()=>{
+      const batteryModeControl=c.uob && !c.mbb && !c.static && !c.forcedBypass &&
+        !c.batteryTest && !c.rectifierFault && c.input &&
+        !c.returning && !c.keyReleased && !c.keyAt2;
+      if(batteryModeControl){
+        c.bang=false;
+        c.uib=!c.uib;
+        updateCastell();
+        return;
+      }
+      cUIBBase();
     };
   }
 }
