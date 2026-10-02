@@ -96,17 +96,26 @@ function renderBatteryBreaker(prefix,state){
   }
 }
 
+function renderMaintenanceBypassLoadText(prefix,state){
+  const loadStatus=$(prefix+"Load");
+  if(loadStatus && state.mbb && !state.uob){
+    loadStatus.textContent="LOAD IS SUPPLIED THROUGH MAINTENANCE BYPASS";
+  }
+}
+
 function installBatteryBreakerStatusWrappers(){
   const baseSingle=updateSingle;
   updateSingle=function(){
     baseSingle();
     renderBatteryBreaker("s",s);
+    renderMaintenanceBypassLoadText("s",s);
   };
 
   const baseCastell=updateCastell;
   updateCastell=function(){
     baseCastell();
     renderBatteryBreaker("c",c);
+    renderMaintenanceBypassLoadText("c",c);
   };
 
   updateSingle();
