@@ -4,6 +4,16 @@
 <div class="pill ok" id="pMode">UPS Mode: INVERTER</div>
 </div>
 
+<div class="fault-banner" id="pFaultBanner">
+  <span class="fault-title">☠ BANG! ☠</span>
+  <span class="fault-sub">Voltages we're out of sync, check installation for damage before proceeding.</span>
+</div>
+
+<div class="loaddrop-banner" id="pLoadDropBanner">
+  <span class="drop-title">✖ LOAD DROPPED ✖</span>
+  <span class="drop-sub">Unfortunately the load has been dropped due to incorrect switching.</span>
+</div>
+
 <div class="diagram">
 <svg viewBox="0 0 1150 650">
   <rect class="box" x="35" y="250" width="130" height="80" rx="10"></rect>
@@ -13,7 +23,6 @@
   <path class="wire live" d="M165 290 H220" id="pSourceIn"></path>
   <path class="wire live" d="M220 145 V515" id="pSourceBus"></path>
 
-  <!-- UPS 1 input and static bypass inputs -->
   <path class="wire live" d="M220 155 H300" id="pUIB1Feed"></path>
   <g class="breaker closed" id="pUIB1">
     <circle class="term" cx="315" cy="155" r="7"></circle>
@@ -50,7 +59,6 @@
   </g>
   <path class="wire live" d="M787 175 H835 V285" id="pUOB1Out"></path>
 
-  <!-- UPS 2 input and static bypass inputs -->
   <path class="wire live" d="M220 335 H300" id="pUIB2Feed"></path>
   <g class="breaker closed" id="pUIB2">
     <circle class="term" cx="315" cy="335" r="7"></circle>
@@ -87,7 +95,6 @@
   </g>
   <path class="wire live" d="M787 355 H835 V285" id="pUOB2Out"></path>
 
-  <!-- Common output bus and SIB -->
   <path class="wire live" d="M835 175 V355" id="pOutputBus"></path>
   <text class="small" x="835" y="258">COMMON OUTPUT BUS</text>
   <path class="wire live" d="M835 285 H875" id="pSIBFeed"></path>
@@ -103,7 +110,6 @@
   <text class="txt" x="1067" y="280">LOAD</text>
   <text class="small" id="pLoadText" x="1067" y="303">ON</text>
 
-  <!-- Maintenance bypass -->
   <path class="wire live" d="M220 515 H600" id="pMBBFeed"></path>
   <g class="breaker open" id="pMBB">
     <circle class="term" cx="615" cy="515" r="7"></circle>
