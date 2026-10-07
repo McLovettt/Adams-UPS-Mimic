@@ -1,10 +1,10 @@
 // Adams UPS Trainer v0.7
 // Parallel UPS simulator logic.
 
-const pids=["pUIB1","pSSIB1","pUOB1","pUIB2","pSSIB2","pUOB2","pSIB","pMBB"];
+const pids=["pUIB1","pSSIB1","pBB1","pUOB1","pUIB2","pSSIB2","pBB2","pUOB2","pSIB","pMBB"];
 let p={
-  pUIB1:true,pSSIB1:true,pUOB1:true,
-  pUIB2:true,pSSIB2:true,pUOB2:true,
+  pUIB1:true,pSSIB1:true,pBB1:true,pUOB1:true,
+  pUIB2:true,pSSIB2:true,pBB2:true,pUOB2:true,
   pSIB:true,pMBB:false,
   pStatic:false,
   bang:false
@@ -14,10 +14,45 @@ function pStepClass(done,next){
   return done?"stepdone":(next?"stepnext":"");
 }
 
+function setParallelLamp(id,available){
+  lamp("pLamp"+id,available);
+}
+
+function updateParallelLamps(){
+  const oneUobOpen=!p.pUOB1||!p.pUOB2;
+  const bothUobsOpen=!p.pUOB1&&!p.pUOB2;
+
+  const canCloseMBB=p.pStatic&&!p.pMBB&&p.pSIB;
+  const canOpenSIB=p.pStatic&&p.pMBB&&p.pSIB;
+  const canOpenUOBs=p.pStatic&&p.pMBB&&!p.pSIB;
+  const canIsolateInputs=p.pMBB&&!p.pSIB&&bothUobsOpen;
+
+  setParallelLamp("MBB",canCloseMBB);
+  setParallelLamp("SIB",canOpenSIB);
+
+  setParallelLamp("UOB1",canOpenUOBs&&p.pUOB1);
+  setParallelLamp("UOB2",canOpenUOBs&&p.pUOB2);
+
+  setParallelLamp("UIB1",canIsolateInputs&&p.pUIB1);
+  setParallelLamp("SSIB1",canIsolateInputs&&p.pSSIB1);
+  setParallelLamp("BB1",canIsolateInputs&&p.pBB1);
+
+  setParallelLamp("UIB2",canIsolateInputs&&p.pUIB2);
+  setParallelLamp("SSIB2",canIsolateInputs&&p.pSSIB2);
+  setParallelLamp("BB2",canIsolateInputs&&p.pBB2);
+
+  // Once one UOB has been opened, only the remaining closed UOB is the next
+  // correct output breaker operation.
+  if(canOpenUOBs&&oneUobOpen&&!bothUobsOpen){
+    if(!p.pUOB1) setParallelLamp("UOB1",false);
+    if(!p.pUOB2) setParallelLamp("UOB2",false);
+  }
+}
+
 function updateParallelSteps(){
-  const oneUobOpen=!p.pUOB1 || !p.pUOB2;
-  const bothUobsOpen=!p.pUOB1 && !p.pUOB2;
-  const isolatedInputs=!p.pUIB1 && !p.pUIB2 && !p.pSSIB1 && !p.pSSIB2;
+  const oneUobOpen=!p.pUOB1||!p.pUOB2;
+  const bothUobsOpen=!p.pUOB1&&!p.pUOB2;
+  const isolatedInputs=!p.pUIB1&&!p.pUIB2&&!p.pSSIB1&&!p.pSSIB2&&!p.pBB1&&!p.pBB2;
 
   $("pSteps").innerHTML="<strong>Parallel maintenance bypass sequence:</strong> "+
     `<span class="${pStepClass(p.pStatic,!p.pStatic)}">Go to Static Bypass</span> → `+
@@ -25,14 +60,17 @@ function updateParallelSteps(){
     `<span class="${pStepClass(!p.pSIB,p.pMBB&&p.pSIB)}">Open SIB</span> → `+
     `<span class="${pStepClass(oneUobOpen,!p.pSIB&&!oneUobOpen)}">Open either UOB</span> → `+
     `<span class="${pStepClass(bothUobsOpen,oneUobOpen&&!bothUobsOpen)}">Open the second UOB</span> → `+
-    `<span class="${pStepClass(isolatedInputs,bothUobsOpen&&!isolatedInputs)}">Open UIBs and SSIBs / Mains 2</span>`;
+    `<span class="${pStepClass(isolatedInputs,bothUobsOpen&&!isolatedInputs)}">Open UIBs, SSIBs / Mains 2 & Battery Breakers</span>`;
 }
 
 function updateParallel(){
   pids.forEach(id=>breakerState($(id),p[id]));
 
-  const ups1Available=p.pStatic?p.pSSIB1:p.pUIB1;
-  const ups2Available=p.pStatic?p.pSSIB2:p.pUIB2;
+  const ups1BatteryMode=!p.pStatic&&!p.pUIB1&&p.pBB1;
+  const ups2BatteryMode=!p.pStatic&&!p.pUIB2&&p.pBB2;
+
+  const ups1Available=p.pStatic?p.pSSIB1:(p.pUIB1||p.pBB1);
+  const ups2Available=p.pStatic?p.pSSIB2:(p.pUIB2||p.pBB2);
 
   const path1=ups1Available&&p.pUOB1;
   const path2=ups2Available&&p.pUOB2;
@@ -67,10 +105,15 @@ function updateParallel(){
   wire("pMBBFeed","live");
   wire("pMBBOut",bypass?(dual?"warn":"live"):null);
 
-  $("pUPS1Mode").textContent=p.pStatic?"STATIC BYPASS":"INVERTER";
-  $("pUPS2Mode").textContent=p.pStatic?"STATIC BYPASS":"INVERTER";
+  $("pBB1Wire").classList.toggle("battery",p.pBB1);
+  $("pBB2Wire").classList.toggle("battery",p.pBB2);
+
+  $("pUPS1Mode").textContent=p.pStatic?"STATIC BYPASS":(ups1BatteryMode?"ON BATTERY":"INVERTER");
+  $("pUPS2Mode").textContent=p.pStatic?"STATIC BYPASS":(ups2BatteryMode?"ON BATTERY":"INVERTER");
   $("pUPS1State").textContent=ups1Available?"AVAILABLE":"UNAVAILABLE";
   $("pUPS2State").textContent=ups2Available?"AVAILABLE":"UNAVAILABLE";
+  $("pUPS1Battery").textContent=p.pBB1?"BATTERY AVAILABLE":"BATTERY ISOLATED";
+  $("pUPS2Battery").textContent=p.pBB2?"BATTERY AVAILABLE":"BATTERY ISOLATED";
 
   const staticButton=$("pStaticToggle");
   staticButton.textContent=p.pStatic?"Return to Inverter":"Go to Static Bypass";
@@ -90,8 +133,8 @@ function updateParallel(){
   if(upsLoad&&bypass) pLoadMsg="SUPPORTED BY UPS SYSTEM + MAINTENANCE BYPASS";
   else if(p.pStatic&&upsLoad) pLoadMsg="SUPPORTED BY STATIC BYPASS";
   else if(path1&&path2&&p.pSIB) pLoadMsg="SUPPORTED BY UPS 1 + UPS 2";
-  else if(path1&&p.pSIB) pLoadMsg="SUPPORTED BY UPS 1";
-  else if(path2&&p.pSIB) pLoadMsg="SUPPORTED BY UPS 2";
+  else if(path1&&p.pSIB) pLoadMsg=ups1BatteryMode?"SUPPORTED BY UPS 1 (ON BATTERY)":"SUPPORTED BY UPS 1";
+  else if(path2&&p.pSIB) pLoadMsg=ups2BatteryMode?"SUPPORTED BY UPS 2 (ON BATTERY)":"SUPPORTED BY UPS 2";
   else if(bypass) pLoadMsg="LOAD IS SUPPLIED THROUGH MAINTENANCE BYPASS";
 
   $("pLoad").textContent=pLoadMsg;
@@ -102,10 +145,11 @@ function updateParallel(){
   else if(bypass&&!upsLoad) pill("pState","MAINTENANCE BYPASS SUPPLYING LOAD","ok");
   else if(p.pStatic&&upsLoad) pill("pState","STATIC BYPASS SUPPLYING LOAD","warn");
   else if(path1&&path2&&p.pSIB) pill("pState","UPS 1 + UPS 2 PARALLELED — LOAD SUPPLIED","ok");
-  else if(path1&&p.pSIB) pill("pState","UPS 1 SUPPLYING LOAD","ok");
-  else if(path2&&p.pSIB) pill("pState","UPS 2 SUPPLYING LOAD","ok");
+  else if(path1&&p.pSIB) pill("pState",ups1BatteryMode?"UPS 1 ON BATTERY — LOAD SUPPLIED":"UPS 1 SUPPLYING LOAD","ok");
+  else if(path2&&p.pSIB) pill("pState",ups2BatteryMode?"UPS 2 ON BATTERY — LOAD SUPPLIED":"UPS 2 SUPPLYING LOAD","ok");
   else pill("pState","LOAD NOT SUPPLIED","bad");
 
+  updateParallelLamps();
   updateParallelSteps();
 }
 
@@ -137,8 +181,8 @@ $("pStaticToggle").onclick=()=>{
 
 $("pNormal").onclick=()=>{
   p={
-    pUIB1:true,pSSIB1:true,pUOB1:true,
-    pUIB2:true,pSSIB2:true,pUOB2:true,
+    pUIB1:true,pSSIB1:true,pBB1:true,pUOB1:true,
+    pUIB2:true,pSSIB2:true,pBB2:true,pUOB2:true,
     pSIB:true,pMBB:false,
     pStatic:false,
     bang:false
@@ -148,8 +192,8 @@ $("pNormal").onclick=()=>{
 
 $("pOne").onclick=()=>{
   p={
-    pUIB1:true,pSSIB1:true,pUOB1:true,
-    pUIB2:false,pSSIB2:true,pUOB2:false,
+    pUIB1:true,pSSIB1:true,pBB1:true,pUOB1:true,
+    pUIB2:false,pSSIB2:false,pBB2:false,pUOB2:false,
     pSIB:true,pMBB:false,
     pStatic:false,
     bang:false
@@ -159,8 +203,8 @@ $("pOne").onclick=()=>{
 
 $("pBypass").onclick=()=>{
   p={
-    pUIB1:false,pSSIB1:false,pUOB1:false,
-    pUIB2:false,pSSIB2:false,pUOB2:false,
+    pUIB1:false,pSSIB1:false,pBB1:false,pUOB1:false,
+    pUIB2:false,pSSIB2:false,pBB2:false,pUOB2:false,
     pSIB:false,pMBB:true,
     pStatic:false,
     bang:false
@@ -170,8 +214,8 @@ $("pBypass").onclick=()=>{
 
 $("pOpen").onclick=()=>{
   p={
-    pUIB1:false,pSSIB1:false,pUOB1:false,
-    pUIB2:false,pSSIB2:false,pUOB2:false,
+    pUIB1:false,pSSIB1:false,pBB1:false,pUOB1:false,
+    pUIB2:false,pSSIB2:false,pBB2:false,pUOB2:false,
     pSIB:false,pMBB:false,
     pStatic:false,
     bang:false
