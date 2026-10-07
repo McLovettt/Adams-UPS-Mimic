@@ -6,7 +6,8 @@ let p={
   pUIB1:true,pSSIB1:true,pUOB1:true,
   pUIB2:true,pSSIB2:true,pUOB2:true,
   pSIB:true,pMBB:false,
-  pStatic:false
+  pStatic:false,
+  bang:false
 };
 
 function pStepClass(done,next){
@@ -30,16 +31,16 @@ function updateParallelSteps(){
 function updateParallel(){
   pids.forEach(id=>breakerState($(id),p[id]));
 
-  const ups1Available = p.pStatic ? p.pSSIB1 : p.pUIB1;
-  const ups2Available = p.pStatic ? p.pSSIB2 : p.pUIB2;
+  const ups1Available=p.pStatic?p.pSSIB1:p.pUIB1;
+  const ups2Available=p.pStatic?p.pSSIB2:p.pUIB2;
 
-  const path1=ups1Available && p.pUOB1;
-  const path2=ups2Available && p.pUOB2;
-  const outputBus=path1 || path2;
-  const upsLoad=outputBus && p.pSIB;
+  const path1=ups1Available&&p.pUOB1;
+  const path2=ups2Available&&p.pUOB2;
+  const outputBus=path1||path2;
+  const upsLoad=outputBus&&p.pSIB;
   const bypass=p.pMBB;
-  const load=upsLoad || bypass;
-  const dual=upsLoad && bypass;
+  const load=upsLoad||bypass;
+  const dual=upsLoad&&bypass;
 
   wire("pSourceIn","live");
   wire("pSourceBus","live");
@@ -75,11 +76,15 @@ function updateParallel(){
   staticButton.textContent=p.pStatic?"Return to Inverter":"Go to Static Bypass";
   staticButton.classList.toggle("active",p.pStatic);
 
-  const staticHealthy = p.pSSIB1 && p.pSSIB2;
+  const staticHealthy=p.pSSIB1&&p.pSSIB2;
   $("pMode").textContent=p.pStatic
-    ? (staticHealthy?"UPS Mode: STATIC BYPASS":"UPS Mode: STATIC BYPASS — SSIB OPEN")
-    : "UPS Mode: INVERTER";
+    ?(staticHealthy?"UPS Mode: STATIC BYPASS":"UPS Mode: STATIC BYPASS — SSIB OPEN")
+    :"UPS Mode: INVERTER";
   $("pMode").className="pill "+(p.pStatic?(staticHealthy?"warn":"bad"):"ok");
+
+  $("pFaultBanner").classList.toggle("active",p.bang);
+  $("pLoadDropBanner").classList.toggle("active",!load&&!p.bang);
+  $("pState").classList.toggle("fault-status-hidden",p.bang||(!load&&!p.bang));
 
   let pLoadMsg="LOAD DROPPED";
   if(upsLoad&&bypass) pLoadMsg="SUPPORTED BY UPS SYSTEM + MAINTENANCE BYPASS";
@@ -92,8 +97,9 @@ function updateParallel(){
   $("pLoad").textContent=pLoadMsg;
   $("pLoadText").textContent=load?"ON":"OFF";
 
-  if(dual) pill("pState","UPS SYSTEM + MAINTENANCE BYPASS CONNECTED — DUAL FED","warn");
-  else if(bypass && !upsLoad) pill("pState","MAINTENANCE BYPASS SUPPLYING LOAD","ok");
+  if(p.bang) pill("pState","BANG!! VOLTAGES WERE OUT OF SYNC — CHECK INSTALLATION FOR DAMAGE","bad");
+  else if(dual) pill("pState","UPS SYSTEM + MAINTENANCE BYPASS CONNECTED — DUAL FED","warn");
+  else if(bypass&&!upsLoad) pill("pState","MAINTENANCE BYPASS SUPPLYING LOAD","ok");
   else if(p.pStatic&&upsLoad) pill("pState","STATIC BYPASS SUPPLYING LOAD","warn");
   else if(path1&&path2&&p.pSIB) pill("pState","UPS 1 + UPS 2 PARALLELED — LOAD SUPPLIED","ok");
   else if(path1&&p.pSIB) pill("pState","UPS 1 SUPPLYING LOAD","ok");
@@ -105,6 +111,19 @@ function updateParallel(){
 
 pids.forEach(id=>{
   $(id).onclick=()=>{
+    if(id==="pMBB"){
+      if(!p.pMBB&&!p.pStatic){
+        p.pMBB=true;
+        p.bang=true;
+        updateParallel();
+        return;
+      }
+      p.pMBB=!p.pMBB;
+      if(!p.pMBB) p.bang=false;
+      updateParallel();
+      return;
+    }
+
     p[id]=!p[id];
     updateParallel();
   };
@@ -112,6 +131,7 @@ pids.forEach(id=>{
 
 $("pStaticToggle").onclick=()=>{
   p.pStatic=!p.pStatic;
+  if(p.pStatic) p.bang=false;
   updateParallel();
 };
 
@@ -120,7 +140,8 @@ $("pNormal").onclick=()=>{
     pUIB1:true,pSSIB1:true,pUOB1:true,
     pUIB2:true,pSSIB2:true,pUOB2:true,
     pSIB:true,pMBB:false,
-    pStatic:false
+    pStatic:false,
+    bang:false
   };
   updateParallel();
 };
@@ -130,7 +151,8 @@ $("pOne").onclick=()=>{
     pUIB1:true,pSSIB1:true,pUOB1:true,
     pUIB2:false,pSSIB2:true,pUOB2:false,
     pSIB:true,pMBB:false,
-    pStatic:false
+    pStatic:false,
+    bang:false
   };
   updateParallel();
 };
@@ -140,7 +162,8 @@ $("pBypass").onclick=()=>{
     pUIB1:false,pSSIB1:false,pUOB1:false,
     pUIB2:false,pSSIB2:false,pUOB2:false,
     pSIB:false,pMBB:true,
-    pStatic:false
+    pStatic:false,
+    bang:false
   };
   updateParallel();
 };
@@ -150,7 +173,8 @@ $("pOpen").onclick=()=>{
     pUIB1:false,pSSIB1:false,pUOB1:false,
     pUIB2:false,pSSIB2:false,pUOB2:false,
     pSIB:false,pMBB:false,
-    pStatic:false
+    pStatic:false,
+    bang:false
   };
   updateParallel();
 };
