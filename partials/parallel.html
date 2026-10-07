@@ -1,83 +1,138 @@
 <div class="topbar">
 <div class="pill ok" id="pState">UPS 1 + UPS 2 PARALLELED — LOAD SUPPLIED</div>
 <div class="pill">Load Status: <span id="pLoad">SUPPORTED BY UPS 1 + UPS 2</span></div>
-<div class="pill" id="pMode">UPS Mode: INVERTER</div>
+<div class="pill ok" id="pMode">UPS Mode: INVERTER</div>
 </div>
 
 <div class="diagram">
-<svg viewBox="0 0 1150 700">
-<rect class="box" height="70" rx="10" width="120" x="35" y="240"></rect>
-<text class="txt" x="95" y="270">MAINS 1</text><text class="small" x="95" y="293">Rectifier Supply</text>
-<path class="wire live" d="M155 275 H220"></path>
-<path class="wire live" d="M220 275 V150 H285" id="pTo1"></path>
-<path class="wire live" d="M220 275 V370 H285" id="pTo2"></path>
+<svg viewBox="0 0 1150 650">
+  <rect class="box" x="35" y="250" width="130" height="80" rx="10"></rect>
+  <text class="txt" x="100" y="282">SUPPLY</text>
+  <text class="small" x="100" y="306">Mains / Bypass</text>
 
-<g class="breaker closed" id="pUIB1"><circle class="term" cx="300" cy="150" r="7"></circle><circle class="term" cx="365" cy="150" r="7"></circle><line class="blade" x1="307" x2="358" y1="150" y2="150"></line><text x="332" y="112">UIB 1</text><text class="state" x="332" y="193">CLOSED</text></g>
-<path class="wire live" d="M372 150 H430" id="p1a"></path>
-<rect class="box" height="116" rx="12" width="175" x="420" y="92"></rect>
-<text class="txt" x="507" y="116">UPS 1</text>
-<text class="small" x="507" y="139">RECTIFIER → DC/BATTERY</text>
-<text class="small" id="pUPS1Mode" x="507" y="160">→ INVERTER</text>
-<text class="small" id="pUPS1State" x="507" y="184">AVAILABLE</text>
-<path class="wire live" d="M570 150 H625" id="p1b"></path>
-<g class="breaker closed" id="pUOB1"><circle class="term" cx="640" cy="150" r="7"></circle><circle class="term" cx="705" cy="150" r="7"></circle><line class="blade" x1="647" x2="698" y1="150" y2="150"></line><text x="672" y="112">UOB 1</text><text class="state" x="672" y="193">CLOSED</text></g>
-<path class="wire live" d="M712 150 H785 V275" id="p1c"></path>
+  <path class="wire live" d="M165 290 H220" id="pSourceIn"></path>
+  <path class="wire live" d="M220 145 V515" id="pSourceBus"></path>
 
-<g class="breaker closed" id="pUIB2"><circle class="term" cx="300" cy="370" r="7"></circle><circle class="term" cx="365" cy="370" r="7"></circle><line class="blade" x1="307" x2="358" y1="370" y2="370"></line><text x="332" y="332">UIB 2</text><text class="state" x="332" y="413">CLOSED</text></g>
-<path class="wire live" d="M372 370 H430" id="p2a"></path>
-<rect class="box" height="116" rx="12" width="175" x="420" y="312"></rect>
-<text class="txt" x="507" y="336">UPS 2</text>
-<text class="small" x="507" y="359">RECTIFIER → DC/BATTERY</text>
-<text class="small" id="pUPS2Mode" x="507" y="380">→ INVERTER</text>
-<text class="small" id="pUPS2State" x="507" y="404">AVAILABLE</text>
-<path class="wire live" d="M570 370 H625" id="p2b"></path>
-<g class="breaker closed" id="pUOB2"><circle class="term" cx="640" cy="370" r="7"></circle><circle class="term" cx="705" cy="370" r="7"></circle><line class="blade" x1="647" x2="698" y1="370" y2="370"></line><text x="672" y="332">UOB 2</text><text class="state" x="672" y="413">CLOSED</text></g>
-<path class="wire live" d="M712 370 H785 V275" id="p2c"></path>
+  <!-- UPS 1 input and static bypass inputs -->
+  <path class="wire live" d="M220 155 H300" id="pUIB1Feed"></path>
+  <g class="breaker closed" id="pUIB1">
+    <circle class="term" cx="315" cy="155" r="7"></circle>
+    <circle class="term" cx="380" cy="155" r="7"></circle>
+    <line class="blade" x1="322" x2="373" y1="155" y2="155"></line>
+    <text x="347" y="118">UIB 1</text>
+    <text class="state" x="347" y="197">CLOSED</text>
+  </g>
+  <path class="wire live" d="M387 155 H500" id="pUIB1Out"></path>
 
-<path class="wire live" d="M785 150 V370" id="pBus"></path>
-<text class="small" x="785" y="250">COMMON OUTPUT BUS</text>
-<path class="wire live" d="M785 275 H835" id="pBusSIB"></path>
-<g class="breaker closed" id="pSIB"><circle class="term" cx="850" cy="275" r="7"></circle><circle class="term" cx="915" cy="275" r="7"></circle><line class="blade" x1="857" x2="908" y1="275" y2="275"></line><text x="882" y="237">SIB</text><text class="state" x="882" y="318">CLOSED</text></g>
-<path class="wire live" d="M922 275 H1010" id="pLoadWire"></path>
-<rect class="box" height="70" rx="10" width="105" x="1010" y="240"></rect>
-<text class="txt" x="1062" y="270">LOAD</text><text class="small" id="pLoadText" x="1062" y="293">ON</text>
+  <path class="wire" d="M220 215 H300" id="pSSIB1Feed"></path>
+  <g class="breaker closed" id="pSSIB1">
+    <circle class="term" cx="315" cy="215" r="7"></circle>
+    <circle class="term" cx="380" cy="215" r="7"></circle>
+    <line class="blade" x1="322" x2="373" y1="215" y2="215"></line>
+    <text x="347" y="253">SSIB 1</text>
+    <text class="state" x="347" y="273">CLOSED</text>
+  </g>
+  <path class="wire" d="M387 215 H500" id="pSSIB1Out"></path>
 
-<rect class="box" height="70" rx="10" width="120" x="35" y="535"></rect>
-<text class="txt" x="95" y="565">MAINS 2</text><text class="small" x="95" y="588">Bypass Supply</text>
-<path class="wire live" d="M155 570 H230" id="pMains2Feed"></path>
+  <rect class="box" x="500" y="115" width="175" height="125" rx="12"></rect>
+  <text class="txt" x="587" y="142">UPS 1</text>
+  <text class="small" id="pUPS1Mode" x="587" y="168">INVERTER</text>
+  <text class="small" id="pUPS1State" x="587" y="194">AVAILABLE</text>
+  <text class="small" x="587" y="220">UIB + SSIB INPUTS</text>
 
-<path class="wire live" d="M230 570 V485 H285" id="pSSIBIn"></path>
-<g class="breaker closed" id="pSSIB"><circle class="term" cx="300" cy="485" r="7"></circle><circle class="term" cx="365" cy="485" r="7"></circle><line class="blade" x1="307" x2="358" y1="485" y2="485"></line><text x="332" y="447">SSIB</text><text class="state" x="332" y="528">CLOSED</text></g>
-<text class="small" x="332" y="548">MAINS 2 INPUT</text>
-<path class="wire live" d="M372 485 H395 V205" id="pStaticBus"></path>
-<path class="wire live" d="M395 205 H420" id="pStatic1"></path>
-<path class="wire live" d="M395 425 H420" id="pStatic2"></path>
-<text class="small" x="475" y="465">COMMON STATIC BYPASS INPUT</text>
+  <path class="wire live" d="M675 175 H700" id="pUPS1Out"></path>
+  <g class="breaker closed" id="pUOB1">
+    <circle class="term" cx="715" cy="175" r="7"></circle>
+    <circle class="term" cx="780" cy="175" r="7"></circle>
+    <line class="blade" x1="722" x2="773" y1="175" y2="175"></line>
+    <text x="747" y="138">UOB 1</text>
+    <text class="state" x="747" y="217">CLOSED</text>
+  </g>
+  <path class="wire live" d="M787 175 H835 V285" id="pUOB1Out"></path>
 
-<path class="wire live" d="M230 570 V625 H590" id="pBy1"></path>
-<g class="breaker open" id="pMBB"><circle class="term" cx="605" cy="625" r="7"></circle><circle class="term" cx="670" cy="625" r="7"></circle><line class="blade" x1="612" x2="663" y1="625" y2="625"></line><text x="637" y="587">MBB</text><text class="state" x="637" y="668">OPEN</text></g>
-<path class="wire" d="M677 625 H970 V275 H1010" id="pBy2"></path>
-<text class="small" x="820" y="610">COMMON MAINTENANCE BYPASS</text>
+  <!-- UPS 2 input and static bypass inputs -->
+  <path class="wire live" d="M220 335 H300" id="pUIB2Feed"></path>
+  <g class="breaker closed" id="pUIB2">
+    <circle class="term" cx="315" cy="335" r="7"></circle>
+    <circle class="term" cx="380" cy="335" r="7"></circle>
+    <line class="blade" x1="322" x2="373" y1="335" y2="335"></line>
+    <text x="347" y="298">UIB 2</text>
+    <text class="state" x="347" y="377">CLOSED</text>
+  </g>
+  <path class="wire live" d="M387 335 H500" id="pUIB2Out"></path>
+
+  <path class="wire" d="M220 395 H300" id="pSSIB2Feed"></path>
+  <g class="breaker closed" id="pSSIB2">
+    <circle class="term" cx="315" cy="395" r="7"></circle>
+    <circle class="term" cx="380" cy="395" r="7"></circle>
+    <line class="blade" x1="322" x2="373" y1="395" y2="395"></line>
+    <text x="347" y="433">SSIB 2</text>
+    <text class="state" x="347" y="453">CLOSED</text>
+  </g>
+  <path class="wire" d="M387 395 H500" id="pSSIB2Out"></path>
+
+  <rect class="box" x="500" y="295" width="175" height="125" rx="12"></rect>
+  <text class="txt" x="587" y="322">UPS 2</text>
+  <text class="small" id="pUPS2Mode" x="587" y="348">INVERTER</text>
+  <text class="small" id="pUPS2State" x="587" y="374">AVAILABLE</text>
+  <text class="small" x="587" y="400">UIB + SSIB INPUTS</text>
+
+  <path class="wire live" d="M675 355 H700" id="pUPS2Out"></path>
+  <g class="breaker closed" id="pUOB2">
+    <circle class="term" cx="715" cy="355" r="7"></circle>
+    <circle class="term" cx="780" cy="355" r="7"></circle>
+    <line class="blade" x1="722" x2="773" y1="355" y2="355"></line>
+    <text x="747" y="318">UOB 2</text>
+    <text class="state" x="747" y="397">CLOSED</text>
+  </g>
+  <path class="wire live" d="M787 355 H835 V285" id="pUOB2Out"></path>
+
+  <!-- Common output bus and SIB -->
+  <path class="wire live" d="M835 175 V355" id="pOutputBus"></path>
+  <text class="small" x="835" y="258">COMMON OUTPUT BUS</text>
+  <path class="wire live" d="M835 285 H875" id="pSIBFeed"></path>
+  <g class="breaker closed" id="pSIB">
+    <circle class="term" cx="890" cy="285" r="7"></circle>
+    <circle class="term" cx="955" cy="285" r="7"></circle>
+    <line class="blade" x1="897" x2="948" y1="285" y2="285"></line>
+    <text x="922" y="248">SIB</text>
+    <text class="state" x="922" y="327">CLOSED</text>
+  </g>
+  <path class="wire live" d="M962 285 H1015" id="pLoadWire"></path>
+  <rect class="box" x="1015" y="250" width="105" height="70" rx="10"></rect>
+  <text class="txt" x="1067" y="280">LOAD</text>
+  <text class="small" id="pLoadText" x="1067" y="303">ON</text>
+
+  <!-- Maintenance bypass -->
+  <path class="wire live" d="M220 515 H600" id="pMBBFeed"></path>
+  <g class="breaker open" id="pMBB">
+    <circle class="term" cx="615" cy="515" r="7"></circle>
+    <circle class="term" cx="680" cy="515" r="7"></circle>
+    <line class="blade" x1="622" x2="673" y1="515" y2="515"></line>
+    <text x="647" y="478">MBB</text>
+    <text class="state" x="647" y="557">OPEN</text>
+  </g>
+  <path class="wire" d="M687 515 H985 V285 H1015" id="pMBBOut"></path>
+  <text class="small" x="835" y="500">MAINTENANCE BYPASS</text>
 </svg>
 </div>
 
 <div class="single-top-controls">
-<div class="controls">
-<button id="pStaticToggle">Go to Static Bypass</button>
-<button id="pNormal">Both UPS Online</button>
-<button id="pOne">UPS 1 Only</button>
-<button id="pBypass">Maintenance Bypass</button>
-<button id="pOpen">Open All</button>
-</div>
-</div>
-
-<div class="steps" id="pSteps"><strong>Parallel maintenance bypass sequence:</strong>
-<span class="stepnext">Go to Static Bypass</span> →
-<span>Close MBB</span> →
-<span>Open SIB</span> →
-<span>Open either UOB</span> →
-<span>Open the second UOB</span> →
-<span>Open UIB 1, UIB 2 &amp; SSIB / Mains 2</span>
+  <div class="controls">
+    <button id="pStaticToggle">Go to Static Bypass</button>
+    <button id="pNormal">Both UPS Online</button>
+    <button id="pOne">UPS 1 Only</button>
+    <button id="pBypass">Maintenance Bypass</button>
+    <button id="pOpen">Open All</button>
+  </div>
 </div>
 
-<div class="note">Parallel maintenance bypass sequence: Static Bypass → close MBB → open SIB → open either UOB → open the remaining UOB → open UIB 1, UIB 2 and SSIB / Mains 2.</div>
+<div class="steps" id="pSteps">
+  <strong>Parallel maintenance bypass sequence:</strong>
+  <span class="stepnext">Go to Static Bypass</span> →
+  <span>Close MBB</span> →
+  <span>Open SIB</span> →
+  <span>Open either UOB</span> →
+  <span>Open the second UOB</span> →
+  <span>Open UIBs and SSIBs / Mains 2</span>
+</div>
