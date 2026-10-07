@@ -1,11 +1,11 @@
 // Adams UPS Trainer v0.7
 // Parallel UPS simulator logic.
 
-const pids=["pUIB1","pUOB1","pUIB2","pUOB2","pSIB","pMBB","pSSIB"];
+const pids=["pUIB1","pSSIB1","pUOB1","pUIB2","pSSIB2","pUOB2","pSIB","pMBB"];
 let p={
-  pUIB1:true,pUOB1:true,
-  pUIB2:true,pUOB2:true,
-  pSIB:true,pMBB:false,pSSIB:true,
+  pUIB1:true,pSSIB1:true,pUOB1:true,
+  pUIB2:true,pSSIB2:true,pUOB2:true,
+  pSIB:true,pMBB:false,
   pStatic:false
 };
 
@@ -16,7 +16,7 @@ function pStepClass(done,next){
 function updateParallelSteps(){
   const oneUobOpen=!p.pUOB1 || !p.pUOB2;
   const bothUobsOpen=!p.pUOB1 && !p.pUOB2;
-  const isolatedInputs=!p.pUIB1 && !p.pUIB2 && !p.pSSIB;
+  const isolatedInputs=!p.pUIB1 && !p.pUIB2 && !p.pSSIB1 && !p.pSSIB2;
 
   $("pSteps").innerHTML="<strong>Parallel maintenance bypass sequence:</strong> "+
     `<span class="${pStepClass(p.pStatic,!p.pStatic)}">Go to Static Bypass</span> → `+
@@ -24,85 +24,83 @@ function updateParallelSteps(){
     `<span class="${pStepClass(!p.pSIB,p.pMBB&&p.pSIB)}">Open SIB</span> → `+
     `<span class="${pStepClass(oneUobOpen,!p.pSIB&&!oneUobOpen)}">Open either UOB</span> → `+
     `<span class="${pStepClass(bothUobsOpen,oneUobOpen&&!bothUobsOpen)}">Open the second UOB</span> → `+
-    `<span class="${pStepClass(isolatedInputs,bothUobsOpen&&!isolatedInputs)}">Open UIB 1, UIB 2 & SSIB / Mains 2</span>`;
+    `<span class="${pStepClass(isolatedInputs,bothUobsOpen&&!isolatedInputs)}">Open UIBs and SSIBs / Mains 2</span>`;
 }
 
 function updateParallel(){
   pids.forEach(id=>breakerState($(id),p[id]));
 
-  const staticAvailable=p.pStatic && p.pSSIB;
-  const ups1Source=p.pStatic ? staticAvailable : p.pUIB1;
-  const ups2Source=p.pStatic ? staticAvailable : p.pUIB2;
-  const a=ups1Source&&p.pUOB1;
-  const b=ups2Source&&p.pUOB2;
-  const bus=a||b;
-  const upsLoad=bus&&p.pSIB;
+  const ups1Available = p.pStatic ? p.pSSIB1 : p.pUIB1;
+  const ups2Available = p.pStatic ? p.pSSIB2 : p.pUIB2;
+
+  const path1=ups1Available && p.pUOB1;
+  const path2=ups2Available && p.pUOB2;
+  const outputBus=path1 || path2;
+  const upsLoad=outputBus && p.pSIB;
   const bypass=p.pMBB;
-  const load=upsLoad||bypass;
-  const dual=upsLoad&&bypass;
+  const load=upsLoad || bypass;
+  const dual=upsLoad && bypass;
 
-  wire("pTo1","live");
-  wire("pTo2","live");
-  wire("p1a",p.pUIB1?"live":null);
-  wire("p2a",p.pUIB2?"live":null);
+  wire("pSourceIn","live");
+  wire("pSourceBus","live");
 
-  wire("pMains2Feed","live");
-  wire("pSSIBIn","live");
-  wire("pStaticBus",p.pSSIB?"live":null);
-  wire("pStatic1",p.pSSIB?(p.pStatic?"warn":"live"):null);
-  wire("pStatic2",p.pSSIB?(p.pStatic?"warn":"live"):null);
+  wire("pUIB1Feed","live");
+  wire("pUIB1Out",p.pUIB1?"live":null);
+  wire("pSSIB1Feed",p.pStatic?"warn":null);
+  wire("pSSIB1Out",(p.pStatic&&p.pSSIB1)?"warn":null);
 
-  wire("p1b",ups1Source?(p.pStatic?"warn":"live"):null);
-  wire("p1c",a?(p.pStatic?"warn":"live"):null);
-  wire("p2b",ups2Source?(p.pStatic?"warn":"live"):null);
-  wire("p2c",b?(p.pStatic?"warn":"live"):null);
-  wire("pBus",bus?(p.pStatic?"warn":"live"):null);
-  wire("pBusSIB",bus?(p.pStatic?"warn":"live"):null);
+  wire("pUIB2Feed","live");
+  wire("pUIB2Out",p.pUIB2?"live":null);
+  wire("pSSIB2Feed",p.pStatic?"warn":null);
+  wire("pSSIB2Out",(p.pStatic&&p.pSSIB2)?"warn":null);
+
+  wire("pUPS1Out",ups1Available?(p.pStatic?"warn":"live"):null);
+  wire("pUOB1Out",path1?(p.pStatic?"warn":"live"):null);
+  wire("pUPS2Out",ups2Available?(p.pStatic?"warn":"live"):null);
+  wire("pUOB2Out",path2?(p.pStatic?"warn":"live"):null);
+
+  wire("pOutputBus",outputBus?(p.pStatic?"warn":"live"):null);
+  wire("pSIBFeed",outputBus?(p.pStatic?"warn":"live"):null);
   wire("pLoadWire",upsLoad?(dual?"warn":(p.pStatic?"warn":"live")):null);
 
-  wire("pBy1","live");
-  wire("pBy2",bypass?(dual?"warn":"live"):null);
+  wire("pMBBFeed","live");
+  wire("pMBBOut",bypass?(dual?"warn":"live"):null);
 
-  $("pUPS1Mode").textContent=p.pStatic?"→ STATIC BYPASS":"→ INVERTER";
-  $("pUPS2Mode").textContent=p.pStatic?"→ STATIC BYPASS":"→ INVERTER";
-  $("pUPS1State").textContent=ups1Source?"AVAILABLE":"UNAVAILABLE";
-  $("pUPS2State").textContent=ups2Source?"AVAILABLE":"UNAVAILABLE";
+  $("pUPS1Mode").textContent=p.pStatic?"STATIC BYPASS":"INVERTER";
+  $("pUPS2Mode").textContent=p.pStatic?"STATIC BYPASS":"INVERTER";
+  $("pUPS1State").textContent=ups1Available?"AVAILABLE":"UNAVAILABLE";
+  $("pUPS2State").textContent=ups2Available?"AVAILABLE":"UNAVAILABLE";
 
   const staticButton=$("pStaticToggle");
   staticButton.textContent=p.pStatic?"Return to Inverter":"Go to Static Bypass";
   staticButton.classList.toggle("active",p.pStatic);
 
-  const modeText=p.pStatic
-    ? (staticAvailable?"UPS Mode: STATIC BYPASS":"UPS Mode: STATIC BYPASS — MAINS 2 UNAVAILABLE")
+  const staticHealthy = p.pSSIB1 && p.pSSIB2;
+  $("pMode").textContent=p.pStatic
+    ? (staticHealthy?"UPS Mode: STATIC BYPASS":"UPS Mode: STATIC BYPASS — SSIB OPEN")
     : "UPS Mode: INVERTER";
-  $("pMode").textContent=modeText;
-  $("pMode").className="pill "+(p.pStatic?(staticAvailable?"warn":"bad"):"ok");
+  $("pMode").className="pill "+(p.pStatic?(staticHealthy?"warn":"bad"):"ok");
 
   let pLoadMsg="LOAD DROPPED";
   if(upsLoad&&bypass) pLoadMsg="SUPPORTED BY UPS SYSTEM + MAINTENANCE BYPASS";
-  else if(p.pStatic&&a&&b&&p.pSIB) pLoadMsg="SUPPORTED BY STATIC BYPASS";
-  else if(p.pStatic&&(a||b)&&p.pSIB) pLoadMsg="SUPPORTED BY STATIC BYPASS";
-  else if(a&&b&&p.pSIB) pLoadMsg="SUPPORTED BY UPS 1 + UPS 2";
-  else if(a&&p.pSIB) pLoadMsg="SUPPORTED BY UPS 1";
-  else if(b&&p.pSIB) pLoadMsg="SUPPORTED BY UPS 2";
+  else if(p.pStatic&&upsLoad) pLoadMsg="SUPPORTED BY STATIC BYPASS";
+  else if(path1&&path2&&p.pSIB) pLoadMsg="SUPPORTED BY UPS 1 + UPS 2";
+  else if(path1&&p.pSIB) pLoadMsg="SUPPORTED BY UPS 1";
+  else if(path2&&p.pSIB) pLoadMsg="SUPPORTED BY UPS 2";
   else if(bypass) pLoadMsg="LOAD IS SUPPLIED THROUGH MAINTENANCE BYPASS";
 
   $("pLoad").textContent=pLoadMsg;
   $("pLoadText").textContent=load?"ON":"OFF";
 
   if(dual) pill("pState","UPS SYSTEM + MAINTENANCE BYPASS CONNECTED — DUAL FED","warn");
-  else if(pypassOnly()) pill("pState","MAINTENANCE BYPASS SUPPLYING LOAD","ok");
+  else if(bypass && !upsLoad) pill("pState","MAINTENANCE BYPASS SUPPLYING LOAD","ok");
   else if(p.pStatic&&upsLoad) pill("pState","STATIC BYPASS SUPPLYING LOAD","warn");
-  else if(a&&b&&p.pSIB) pill("pState","UPS 1 + UPS 2 PARALLELED — LOAD SUPPLIED","ok");
-  else if(a&&p.pSIB) pill("pState","UPS 1 SUPPLYING LOAD","ok");
-  else if(b&&p.pSIB) pill("pState","UPS 2 SUPPLYING LOAD","ok");
+  else if(path1&&path2&&p.pSIB) pill("pState","UPS 1 + UPS 2 PARALLELED — LOAD SUPPLIED","ok");
+  else if(path1&&p.pSIB) pill("pState","UPS 1 SUPPLYING LOAD","ok");
+  else if(path2&&p.pSIB) pill("pState","UPS 2 SUPPLYING LOAD","ok");
   else pill("pState","LOAD NOT SUPPLIED","bad");
 
   updateParallelSteps();
-}
-
-function pypassOnly(){
-  return p.pMBB && (!p.pSIB || (!p.pUOB1&&!p.pUOB2));
 }
 
 pids.forEach(id=>{
@@ -119,9 +117,9 @@ $("pStaticToggle").onclick=()=>{
 
 $("pNormal").onclick=()=>{
   p={
-    pUIB1:true,pUOB1:true,
-    pUIB2:true,pUOB2:true,
-    pSIB:true,pMBB:false,pSSIB:true,
+    pUIB1:true,pSSIB1:true,pUOB1:true,
+    pUIB2:true,pSSIB2:true,pUOB2:true,
+    pSIB:true,pMBB:false,
     pStatic:false
   };
   updateParallel();
@@ -129,9 +127,9 @@ $("pNormal").onclick=()=>{
 
 $("pOne").onclick=()=>{
   p={
-    pUIB1:true,pUOB1:true,
-    pUIB2:false,pUOB2:false,
-    pSIB:true,pMBB:false,pSSIB:true,
+    pUIB1:true,pSSIB1:true,pUOB1:true,
+    pUIB2:false,pSSIB2:true,pUOB2:false,
+    pSIB:true,pMBB:false,
     pStatic:false
   };
   updateParallel();
@@ -139,9 +137,9 @@ $("pOne").onclick=()=>{
 
 $("pBypass").onclick=()=>{
   p={
-    pUIB1:false,pUOB1:false,
-    pUIB2:false,pUOB2:false,
-    pSIB:false,pMBB:true,pSSIB:false,
+    pUIB1:false,pSSIB1:false,pUOB1:false,
+    pUIB2:false,pSSIB2:false,pUOB2:false,
+    pSIB:false,pMBB:true,
     pStatic:false
   };
   updateParallel();
@@ -149,9 +147,9 @@ $("pBypass").onclick=()=>{
 
 $("pOpen").onclick=()=>{
   p={
-    pUIB1:false,pUOB1:false,
-    pUIB2:false,pUOB2:false,
-    pSIB:false,pMBB:false,pSSIB:false,
+    pUIB1:false,pSSIB1:false,pUOB1:false,
+    pUIB2:false,pSSIB2:false,pUOB2:false,
+    pSIB:false,pMBB:false,
     pStatic:false
   };
   updateParallel();
